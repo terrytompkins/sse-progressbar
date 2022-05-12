@@ -18,9 +18,50 @@ function ProgressBarComponent() {
     event.preventDefault();
     const data = new FormData();
     data.append("file", selectedFile);
-    let url = "http://localhost:8080/upload/local";
-    const eventSource = new EventSource("http://localhost:8080/progress");
+    const serverBaseURL = "http://localhost:8000";
+    let url = `${serverBaseURL}/upload/local`;
+    // const eventSource = new EventSource("http://localhost:8080/progress");
     let guidValue = null;
+
+  
+    const fetchGuid = async () => {
+      await fetchEventSource(`${serverBaseURL}/progress`, {
+      
+      }
+
+      const fetchData = async () => {
+        await fetchEventSource(`${serverBaseURL}/progress`, {
+          method: "POST",
+          headers: {
+            Accept: "text/event-stream",
+          },
+          onopen(res) {
+            if (res.ok && res.status === 200) {
+              console.log("Connection made ", res);
+            } else if (
+              res.status >= 400 &&
+              res.status < 500 &&
+              res.status !== 429
+            ) {
+              console.log("Client side error ", res);
+            }
+          },
+          onmessage(event) {
+            console.log(event.data);
+            const parsedData = JSON.parse(event.data);
+            setData((data) => [...data, parsedData]);
+          },
+          onclose() {
+            console.log("Connection closed by the server");
+          },
+          onerror(err) {
+            console.log("There was an error from server", err);
+          },
+        });
+      };
+      fetchData();
+    }
+  
 
     eventSource.addEventListener("GUI_ID", (event) => {
       guidValue = JSON.parse(event.data);
