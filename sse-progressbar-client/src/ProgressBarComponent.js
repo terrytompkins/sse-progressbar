@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "antd/dist/antd.css";
 import { Card, Button, Progress, Row } from "antd";
+var EventSource = require('eventsource');
 
 function ProgressBarComponent() {
   const [fetching, setFetching] = useState(false);
@@ -19,7 +20,8 @@ function ProgressBarComponent() {
     const data = new FormData();
     data.append("file", selectedFile);
     let url = "http://localhost:8080/upload/local";
-    const eventSource = new EventSource("http://localhost:8080/progress");
+    var eventSourceInitDict = {headers: {'Cookie': 'test=test', 'Authorization': 'Bearer Boogie Boogie'}};
+    var eventSource = new EventSource("http://localhost:8080/progress", eventSourceInitDict);
     let guidValue = null;
 
     eventSource.addEventListener("GUI_ID", (event) => {
