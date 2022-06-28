@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.json.JSONObject;
 
 @Service
 public class FileStorageServiceImpl implements FileStorageService {
@@ -38,11 +39,13 @@ public class FileStorageServiceImpl implements FileStorageService {
 				int uploadPercentage = (lineNumber * 100 / totalLines);
 				// compute your percentage
 				if (uploadPercentage != previousPercent && uploadPercentage % 5 == 0 && uploadPercentage != 55
-						&& uploadPercentage < 100) {
+						&& uploadPercentage <= 100) {
 					// Output if different from last time.
 					System.out.println(uploadPercentage + "% read");
 					Thread.sleep(2000);
-					sseEmitter.send(SseEmitter.event().name(guid).data(uploadPercentage));
+					JSONObject obj = new JSONObject();
+                    obj.put("uploadPercentage", uploadPercentage);
+					sseEmitter.send(SseEmitter.event().name(guid).data(obj.toString()));
 				}
 				// Update the percentage
 				previousPercent = uploadPercentage;
@@ -55,8 +58,6 @@ public class FileStorageServiceImpl implements FileStorageService {
 			byte[] bytes = file.getBytes();
 			Path path = Paths.get(root + file.getOriginalFilename());
 			Files.write(path, bytes);
-			System.out.println("100" + "% read.");
-			sseEmitter.send(SseEmitter.event().name(guid).data(100));
 		} catch (Exception e) {
 			sseEmitter.completeWithError(e);
 			throw new RuntimeException("Could not store the file. Error: " + e.getMessage());

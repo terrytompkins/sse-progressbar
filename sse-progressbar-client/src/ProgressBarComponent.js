@@ -20,6 +20,7 @@ function ProgressBarComponent() {
     const data = new FormData();
     data.append("file", selectedFile);
     let url = "http://localhost:8080/upload/local";
+    let currentUploadPercentage = 0;
     var eventSourceInitDict = {headers: {'Cookie': 'test=test', 'Authorization': 'Bearer Boogie Boogie'}};
     var eventSource = new EventSource("http://localhost:8080/progress", eventSourceInitDict);
     let guidValue = null;
@@ -30,10 +31,16 @@ function ProgressBarComponent() {
       data.append("guid", guidValue);
       eventSource.addEventListener(guidValue, (event) => {
         const result = JSON.parse(event.data);
-        if (uploadPercentage !== result) {
-          setUploadPercentage(result);
+        console.log("=====> RESULT:" + JSON.stringify(result, null, 4));
+        let newUploadPercentage = result.uploadPercentage;
+        console.log(`=====> UPLOAD PERCENTAGE: ${currentUploadPercentage},  NEW UPLOAD PERCENTAGE: ${newUploadPercentage}`);
+        if (newUploadPercentage && currentUploadPercentage !== newUploadPercentage) {
+          setUploadPercentage(newUploadPercentage);
+          currentUploadPercentage = newUploadPercentage;
+          console.log("======XXXXXXXXXX CHANGING UPLOAD PERCENTAGE" + currentUploadPercentage);
         }
-        if (result === "100") {
+        if (newUploadPercentage === "100") {
+          console.log("XXXXXXXXXXXXXXXXXXXX   CLOSING EVENTSOURCE PIPE XXXXXXXXXXXXXXXXXXX");
           eventSource.close();
         }
       });
